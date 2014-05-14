@@ -36,11 +36,15 @@ public class AlignmentComparatorTask extends Task<Alignment> {
 
     @Override
     public boolean pre() {
+        alignmentDataReader.open();
+        alignmentDataReader.pre();
         return super.pre();    //To change body of overridden methods use File | Settings | File Templates.
     }
 
     @Override
     public boolean post() {
+        alignmentDataReader.post();
+        alignmentDataReader.close();
         System.out.println("Number of Alignments NOT equal: " + numAlignmentsFailed);
         return super.post();    //To change body of overridden methods use File | Settings | File Templates.
     }
@@ -62,6 +66,7 @@ public class AlignmentComparatorTask extends Task<Alignment> {
             if (!batchAlignment.equals(readAlignment)) {
                 batchFails++;
                 if (verbosity == 1) {
+                    System.out.println("Alignment number: " + currentAlignment);
                     printEquals(batchAlignment, readAlignment);
                 }
             }
@@ -177,7 +182,7 @@ public class AlignmentComparatorTask extends Task<Alignment> {
             }
         }
         if (!areEqual) {
-            System.out.println("ProtoHelper failed!");
+            System.out.println("Alignments are different failed!");
         }
         return areEqual;
     }
