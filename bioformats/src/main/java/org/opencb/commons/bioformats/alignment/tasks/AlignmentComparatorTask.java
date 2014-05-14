@@ -5,10 +5,7 @@ import org.opencb.commons.bioformats.alignment.io.readers.AlignmentDataReader;
 import org.opencb.commons.run.Task;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -186,4 +183,42 @@ public class AlignmentComparatorTask extends Task<Alignment> {
         }
         return areEqual;
     }
+
+
+    /**
+     * Responde a : d1 equivalente a d2
+     *
+     * @param d1    Acepta conversión a match_mismatch.
+     * @param d2
+     * @return
+     */
+    boolean diffEquals(List<Alignment.AlignmentDifference> d1, List<Alignment.AlignmentDifference> d2){
+
+        int index = 0;
+        List<Alignment.AlignmentDifference> loosenedDifferences = new LinkedList<>();
+        for (Alignment.AlignmentDifference alignmentDifference : d1) {
+            if (alignmentDifference.getOp() == Alignment.AlignmentDifference.MATCH_MISMATCH
+                    || alignmentDifference.getOp() == Alignment.AlignmentDifference.MISMATCH){
+                loosenedDifferences.add(alignmentDifference);
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        return true;
+    }
+
 }

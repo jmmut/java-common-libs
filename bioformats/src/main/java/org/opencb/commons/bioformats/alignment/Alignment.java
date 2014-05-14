@@ -1,9 +1,6 @@
 package org.opencb.commons.bioformats.alignment;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 import net.sf.samtools.Cigar;
@@ -367,6 +364,40 @@ public class Alignment {
         return true;
     }
 
+    /**
+     * Compares two sets of AlignmentDifferences.
+     *
+     * If they are not equal at first glance, it tries to match M tags with X and =.
+     * Equivalent differences:
+     *
+     * 3M
+     * 3=
+     * 3X
+     * 1X2=
+     * 2=1M
+     * ...
+     *
+     * At the time of writing this, there is no '=' tag in the AlignmentDifferences: it should not
+     * be stored if it is retrievable with the reference sequence. Ergo, if there is a gap:
+     *      pos[0] + length[0] < pos[1]
+     * it is assumed as a gap of '='s.
+     *
+     * @param externalDifferences
+     * @return true if the differences are equivalent
+     */
+    public boolean compareDifferences(List<AlignmentDifference> externalDifferences) {
+        if (!differences.equals(externalDifferences)) {
+            List<AlignmentDifference> loosenedDifferences = AlignmentHelper.loosenDifferences(differences);
+            List<AlignmentDifference> loosenedExternalDifferences = AlignmentHelper.loosenDifferences(externalDifferences);
+            if (!loosenedDifferences.equals(loosenedExternalDifferences)) {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+
     public static class AlignmentDifference {
 
         private final int pos;  // in the reference sequence
@@ -430,7 +461,7 @@ public class Alignment {
 
             AlignmentDifference other = (AlignmentDifference) obj;
             if (isSequenceStored()) {
-            return pos == other.pos && op == other.op && seq.equalsIgnoreCase(other.seq) && length == other.length;
+                return pos == other.pos && op == other.op && seq.equalsIgnoreCase(other.seq) && length == other.length;
             } else {
                 return pos == other.pos && op == other.op && length == other.length;
             }

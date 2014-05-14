@@ -424,5 +424,30 @@ public class AlignmentHelperTest {
 
 
     }
+    
+    
+    @Test
+    public void compareDifferencesTest() {
+        List<Alignment.AlignmentDifference> alignmentDifferences = new LinkedList<>();
+        alignmentDifferences.add(new Alignment.AlignmentDifference(0, Alignment.AlignmentDifference.MATCH_MISMATCH, 5));
+        alignmentDifferences.add(new Alignment.AlignmentDifference(5, Alignment.AlignmentDifference.MISMATCH, 10));
+        alignmentDifferences.add(new Alignment.AlignmentDifference(15, Alignment.AlignmentDifference.DELETION, 2));
+        alignmentDifferences.add(new Alignment.AlignmentDifference(17, Alignment.AlignmentDifference.MISMATCH, 3));
+        alignmentDifferences.add(new Alignment.AlignmentDifference(20, Alignment.AlignmentDifference.INSERTION, 1));
+        alignmentDifferences.add(new Alignment.AlignmentDifference(25, Alignment.AlignmentDifference.MISMATCH, 5));
+
+
+        List<Alignment.AlignmentDifference> expectedDiffs = new LinkedList<>();
+        expectedDiffs.add(new Alignment.AlignmentDifference(0, Alignment.AlignmentDifference.MATCH_MISMATCH, 15));
+        expectedDiffs.add(new Alignment.AlignmentDifference(15, Alignment.AlignmentDifference.DELETION, 2));
+        expectedDiffs.add(new Alignment.AlignmentDifference(17, Alignment.AlignmentDifference.MATCH_MISMATCH, 3));
+        expectedDiffs.add(new Alignment.AlignmentDifference(20, Alignment.AlignmentDifference.INSERTION, 1));
+        expectedDiffs.add(new Alignment.AlignmentDifference(25, Alignment.AlignmentDifference.MATCH_MISMATCH, 10));
+
+
+        alignmentDifferences = AlignmentHelper.loosenDifferences(alignmentDifferences);
+        assertTrue("Differences are not equal: \n" + alignmentDifferences + "\n" + expectedDiffs, alignmentDifferences.equals(expectedDiffs));
+
+    }
 
 }

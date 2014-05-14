@@ -437,6 +437,58 @@ public class AlignmentHelper {
         return sequence;
     }
 
+    public static List<Alignment.AlignmentDifference> loosenDifferences ( List<Alignment.AlignmentDifference> differences) {
 
+        LinkedList<Alignment.AlignmentDifference> ungappedDiffs = new LinkedList<>();
+        LinkedList<Alignment.AlignmentDifference> replacedDiffs = new LinkedList<>();
+        LinkedList<Alignment.AlignmentDifference> joinedDiffs = new LinkedList<>();
+        Alignment.AlignmentDifference prevDiff = null;
+
+        for (Alignment.AlignmentDifference alignmentDifference : differences) { // first pass, replace gaps with M
+            if (ungappedDiffs.size() == 0) {    // first diff
+                if (alignmentDifference.getPos() != 0){ // gap at the beginning
+                    ungappedDiffs.add(new Alignment.AlignmentDifference(0, Alignment.AlignmentDifference.MATCH_MISMATCH, alignmentDifference.getPos()));
+                }
+                ungappedDiffs.add(alignmentDifference);
+            } else if (prevDiff.getPos() + prevDiff.getLength() < alignmentDifference.getPos()) {  // search for gaps
+                ungappedDiffs.add(new Alignment.AlignmentDifference(0, Alignment.AlignmentDifference.MATCH_MISMATCH
+                        , alignmentDifference.getPos() - prevDiff.getPos()));  // replace gap with M, loses sequence
+            }
+            ungappedDiffs.add(alignmentDifference);
+            prevDiff = ungappedDiffs.getLast();
+        }
+
+        // FIXME jj: = at the end of the sequence. 5M will not match with 3X(2=), 2= is implicitly stored
+
+        for (Alignment.AlignmentDifference alignmentDifference : ungappedDiffs) { // second pass, replace X with M
+            if (alignmentDifference.getOp() == Alignment.AlignmentDifference.MISMATCH) {  // search for gaps
+                if (alignmentDifference.isSequenceStored()) {
+                    replacedDiffs.add(new Alignment.AlignmentDifference(alignmentDifference.getPos(), Alignment.AlignmentDifference.MATCH_MISMATCH, alignmentDifference.getSeq()));  // replace gap with M
+                } else {
+                    replacedDiffs.add(new Alignment.AlignmentDifference(alignmentDifference.getPos(), Alignment.AlignmentDifference.MATCH_MISMATCH , alignmentDifference.getLength()));  // replace gap with M, loses sequence
+                }
+            }
+        }
+
+        for (Alignment.AlignmentDifference alignmentDifference : replacedDiffs) { // third pass, join adjacent M
+            if (joinedDiffs.size() == 0) {
+                joinedDiffs.add(alignmentDifference);   // first difference
+            } else {
+                prevDiff = joinedDiffs.removeLast();
+                if (prevDiff.getOp() == Alignment.AlignmentDifference.MATCH_MISMATCH
+                        && alignmentDifference.getOp() == Alignment.AlignmentDifference.MATCH_MISMATCH) {  // 'M', 'X' or gap
+                    if (alignmentDifference.isSequenceStored() && prevDiff.isSequenceStored()) {
+                        joinedDiffs.add(new Alignment.AlignmentDifference(prevDiff.getPos(), prevDiff.getOp(), prevDiff.getSeq() + alignmentDifference.getSeq()));
+                    } else {
+                        joinedDiffs.add(new Alignment.AlignmentDifference(prevDiff.getPos(), prevDiff.getOp(), prevDiff.getLength() + alignmentDifference.getLength()));
+                    }
+                } else {
+                    joinedDiffs.add(prevDiff);
+                    joinedDiffs.add(alignmentDifference);   // 'I', 'D', 'N', 'S', 'H' or 'P'
+                }
+            }
+        }
+        return joinedDiffs;
+    }
 
 }
